@@ -6,9 +6,15 @@ Before to start this project, make sure that you follow the requiriments:
 Python 3
 
 pip install operator
+
 pip install tkinter
+
 pip install tkinter.filedialog
+
 pip install operator
+
 pip install calendar 
+
 pip install pytube 
+
 pip install PySimpleGUI
