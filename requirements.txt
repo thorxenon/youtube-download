@@ -5,3 +5,4 @@ pydub
 opencv-python
 imageio-ffmpeg
 ffmpeg-python
+pillow
