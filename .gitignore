@@ -12,3 +12,4 @@ ytb-download/build/*
 ytb-download/
 **/*.cfg
 share/*
+**/*.exe
