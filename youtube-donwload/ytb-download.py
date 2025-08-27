@@ -1,37 +1,66 @@
-from operator import index
-from tkinter.filedialog import askopenfilename
-from calendar import c
-from tkinter import messagebox
+from tkinter import Tk, Label, Button, Entry, filedialog, messagebox, Frame
 from pytube import YouTube
-import PySimpleGUI as psg
-from PySimpleGUI import *
-import moviepy.editor
+from PIL import Image, ImageTk
+import subprocess
+import imageio_ffmpeg
+import yt_dlp
+import traceback
 
-psg.theme('DarkGray')
-layout = [
-    [psg.Image(source="C:/Users/pedro/Desktop/youtube-download/youtube-logo.png",key=1)],
-    [psg.Text('Coloque o link do vídeo para Download.'),psg.Input(key="site")],
-    [psg.Button('Baixar'), psg.Button('Converter')],
-]
-window = psg.Window('YoutubeDownloader', layout=layout, element_justification="c")
+# Função para baixar o vídeo do YouTube
+def baixar_video():
+    link = entrada_link.get()
+    if not link:
+        messagebox.showerror("Erro", "Por favor, insira o link do vídeo.")
+        return
 
-while True:
+    try:
+        ydl_opts = {
+            'outtmpl': '%(title)s.%(ext)s',
+            'format': 'bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best',
+        }
+        with yt_dlp.YoutubeDL(ydl_opts) as ydl:
+            ydl.download([link])
+        messagebox.showinfo("Sucesso", "Download concluído!")
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao baixar o vídeo: {e}")
+        print(traceback.format_exc())
 
-    eventos, valores = window.read()
+# Função para converter vídeo em áudio
+def converter_audio():
+    video_path = filedialog.askopenfilename(filetypes=[("Arquivos de Vídeo", "*.mp4;*.mkv;*.avi")])
+    if not video_path:
+        return
 
-    if eventos == psg.WINDOW_CLOSED:
-        break
-    if eventos == 'Baixar':
-        if valores['site']:
-            site = valores['site']
-            yt = YouTube(site)
-            yt.streams.get_highest_resolution().download()
-            #videoName = [psg.Text(yt.video_id)]
-            #channel = [psg.Text(yt.channel_url)]
+    try:
+        # Extrai o áudio usando pydub
+        audio_path = video_path.rsplit('.', 1)[0] + ".mp3"
+        ffmpeg_path = imageio_ffmpeg.get_ffmpeg_exe()
+        subprocess.run([
+            ffmpeg_path,"-y","-i", video_path, "-vn", "-acodec","libmp3lame", audio_path
+        ], check=True)
+        messagebox.showinfo("Sucesso", f"Áudio salvo em: {audio_path}")
+    except Exception as e:
+        messagebox.showerror("Erro", f"Erro ao converter vídeo: {e}")
 
-            #layout.insert([videoName],[channel])
-    if eventos == 'Converter':
-        video = askopenfilename()
-        video = moviepy.editor.VideoFileClip(video)
-        som = video.audio
-        som.write_audiofile("music.mp3")
+# Configuração da interface gráfica com tkinter
+janela = Tk()
+janela.title("YouTube Downloader")
+pill_img = Image.open("youtube-logo.png").resize((250, 100), Image.LANCZOS)
+tk_img = ImageTk.PhotoImage(pill_img)
+Label(janela, image=tk_img).pack(pady=10)
+
+# Elementos da interface
+Label(janela, text="Coloque o link do vídeo para Download:").pack(pady=10)
+entrada_link = Entry(janela, width=50)
+entrada_link.pack(pady=5)
+
+frame_botoes = Frame(janela)
+frame_botoes.pack(pady=10)
+
+btn_download = Button(frame_botoes, text="Baixar", command=baixar_video)
+btn_download.pack(side="left", padx=5)
+btn_convert = Button(frame_botoes, text="Converter Vídeo em Áudio", command=converter_audio)
+btn_convert.pack(side="left", padx=5)
+
+# Inicia o loop da interface
+janela.mainloop()
