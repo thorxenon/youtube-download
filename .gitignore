@@ -14,3 +14,4 @@ ytb-download/
 share/*
 **/*.exe
 **/*.log
+youtube-download/venv/*
