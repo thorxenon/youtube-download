@@ -1,6 +1,8 @@
 from tkinter import Tk, Label, Button, Entry, filedialog, messagebox, Frame
 from pytube import YouTube
 from PIL import Image, ImageTk
+import os
+import sys
 import subprocess
 import imageio_ffmpeg
 import yt_dlp
@@ -45,7 +47,31 @@ def converter_audio():
 # Configuração da interface gráfica com tkinter
 janela = Tk()
 janela.title("YouTube Downloader")
-pill_img = Image.open("youtube-logo.png").resize((250, 100), Image.LANCZOS)
+
+# Definitive resource loading: when bundled with PyInstaller (--onefile), extra files
+# included with --add-data are available inside sys._MEIPASS. We MUST load the image
+# from that location. If the file isn't present, fail loudly and tell the user to
+# rebuild including the resource.
+base_path = getattr(sys, '_MEIPASS', None) or os.path.dirname(os.path.abspath(__file__))
+logo_path = os.path.join(base_path, 'youtube-logo.png')
+if not os.path.isfile(logo_path):
+    # Clear failure: do not fallback silently or show placeholder. Inform how to include the file.
+    err_msg = (
+        f"Recurso ausente: {logo_path}\n\n"
+        "Para corrigir, coloque 'youtube-logo.png' ao lado de 'ytb-download.py' e reconstrua o execu-tavel com:\n"
+        "pyinstaller --onefile --windowed --add-data \"youtube-logo.png;.\" ytb-download.py\n"
+        "(ou, se usar pasta assets: --add-data \"assets;assets\")"
+    )
+    try:
+        # Try to show a GUI message if possible
+        messagebox.showerror("Recurso ausente", err_msg)
+    except Exception:
+        # Fallback to console
+        print(err_msg)
+    # Stop immediately so the issue isn't masked
+    raise FileNotFoundError(err_msg)
+
+pill_img = Image.open(logo_path).resize((250, 100), Image.LANCZOS)
 tk_img = ImageTk.PhotoImage(pill_img)
 Label(janela, image=tk_img).pack(pady=10)
 

@@ -6,3 +6,5 @@ opencv-python
 imageio-ffmpeg
 ffmpeg-python
 pillow
+pytube
+pyinstaller

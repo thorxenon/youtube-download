@@ -13,3 +13,4 @@ ytb-download/
 **/*.cfg
 share/*
 **/*.exe
+**/*.log
